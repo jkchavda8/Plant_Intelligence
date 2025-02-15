@@ -9,6 +9,10 @@ const itemSchema = mongoose.Schema({
     images: [String],  
     createdAt: { type: Date, default: Date.now }, 
     stock: Number,
+    status:{
+        type:String,
+        default:"pending"
+    },
     avgScore: Number,
     reviewIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],  
     keyPoints: Object  

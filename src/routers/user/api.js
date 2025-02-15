@@ -1,98 +1,174 @@
-// const express = require("express");
-// const multer = require("multer");
-// const { GridFsStorage } = require("multer-gridfs-storage");
-// const mongoose = require("mongoose");
-// const User = require("../../models/user");
-// const router = express.Router();
-// const { GridFSBucket } = require("mongodb");
+const express = require('express');
+const router = express.Router();
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken")
+const User = require("../../models/user");
+const Item = require("../../models/item")
 
-// // ✅ MongoDB Connection with Proper Options
-// const mongoURI = "mongodb+srv://mahendrafenil8:Svsm4142@cluster0.eembine.mongodb.net/PlantDB";
-// const conn = mongoose.createConnection(mongoURI, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-// });
+// Register User
+router.post("/register", async (req, res) => {
+  try {
+    const { name, email, password, address, phone } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: "User already exists" });
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    // console.log('here')
+    const newUser = new User({ name, email, password: hashedPassword, address, phone,profileImage:"", wishList: [], buyList: [], sellList: [] });
+    await newUser.save();
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+});
 
-// let gfs, gridFSBucket;
-// conn.once("open", () => {
-//     gridFSBucket = new GridFSBucket(conn.db, { bucketName: "uploads" });
-//     gfs = new mongoose.mongo.GridFSBucket(conn.db, { bucketName: "uploads" });
-//     console.log("✅ GridFS Initialized");
-// });
+// Login User
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "User not found" });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    
+    const token = jwt.sign({ userId: user._id }, "check", { expiresIn: "1h" });
+    // console.log('here')
+    res.json({ token, user });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+});
 
-// // ✅ Configure GridFsStorage (Fixed)
-// const storage = new GridFsStorage({
-//     url: mongoURI,
-//     options: { useNewUrlParser: true, useUnifiedTopology: true },
-//     file: (req, file) => {
-//         return new Promise((resolve, reject) => {
-//             if (!file) {
-//                 return reject(new Error("No file uploaded"));
-//             }
-//             resolve({
-//                 filename: `${Date.now()}-${file.originalname}`,
-//                 bucketName: "uploads",
-//             });
-//         });
-//     },
-// });
+// Get User Profile
+router.get("/profile/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+});
 
-// const upload = multer({ storage });
+router.put("/profile/:id", async (req, res) => {
+    try {
+      const { name, address, phone, profileImage } = req.body;
+      const updatedUser = await User.findByIdAndUpdate(
+        req.params.id,
+        { name, address, phone, profileImage }
+      );
+      if (!updatedUser) return res.status(404).json({ message: "User not found" });
+      res.json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ message: "Server Error" });
+    }
+});
+  
+  // Delete User
+router.delete("/profile/:id", async (req, res) => {
+    try {
+      const deletedUser = await User.findByIdAndDelete(req.params.id);
+      if (!deletedUser) return res.status(404).json({ message: "User not found" });
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Server Error" });
+    }
+});
 
-// // ✅ User Registration with Profile Image Upload
-// router.post("/register", upload.single("profileImage"), async (req, res) => {
-//     try {
-//         console.log("File received:", req.file); // Debugging line
+// Add item to wishlist
+router.post("/:userId/wishlist/:itemId", async (req, res) => {
+    try {
+        const { userId, itemId } = req.params;
         
-//         const { name, email, password, address, phone } = req.body;
-//         if (!name || !email || !password || !address || !phone) {
-//             return res.status(400).json({ error: "All fields are required" });
-//         }
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        
+        const item = await Item.findById(itemId);
+        if (!item) return res.status(404).json({ message: "Item not found" });
+        
+        if (user.wishList.includes(itemId)) {
+            return res.status(400).json({ message: "Item already in wishlist" });
+        }
+        
+        user.wishList.push(itemId);
+        await user.save();
+        
+        res.json({ message: "Item added to wishlist", wishList: user.wishList });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
 
-//         if (!req.file) {
-//             return res.status(400).json({ error: "Profile image is required" });
-//         }
+// Remove item from wishlist
+router.delete("/:userId/wishlist/:itemId", async (req, res) => {
+    try {
+        const { userId, itemId } = req.params;
+        
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        
+        user.wishList = user.wishList.filter(id => id.toString() !== itemId);
+        await user.save();
+        
+        res.json({ message: "Item removed from wishlist", wishList: user.wishList });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
 
-//         const profileImage = req.file.filename;
 
-//         const newUser = new User({
-//             name,
-//             email,
-//             password,
-//             address,
-//             phone,
-//             profileImage,
-//             wishList: [],
-//             buyList: [],
-//             sellList: [],
-//         });
+// Get user's wishlist with actual item details
+router.get("/:userId/wishlist", async (req, res) => {
+    try {
+        const { userId } = req.params;
 
-//         await newUser.save();
-//         res.status(201).json({ message: "✅ User registered successfully", newUser });
-//     } catch (err) {
-//         console.error("Error:", err.message); // Debugging
-//         res.status(500).json({ error: err.message });
-//     }
-// });
+        // Find the user
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
 
-// // ✅ Fetch Image API (Fixed `gfs` issue)
-// router.get("/image/:filename", async (req, res) => {
-//     try {
-//         if (!gfs) {
-//             return res.status(500).json({ error: "GridFS not initialized yet" });
-//         }
+        // Fetch item details for each ID in wishList
+        const items = await Item.find({ _id: { $in: user.wishList } });
 
-//         const files = await gfs.find({ filename: req.params.filename }).toArray();
-//         if (!files || files.length === 0) {
-//             return res.status(404).json({ error: "File not found" });
-//         }
+        res.json({ wishList: items });
+    } catch (error) {
+        console.error("Error fetching wishlist:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
 
-//         // Stream the image back
-//         const readStream = gridFSBucket.openDownloadStreamByName(req.params.filename);
-//         readStream.pipe(res);
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
 
-// module.exports = router;
+// Get user's buyList items
+router.get("/:userId/buyList", async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const buyListItems = await Item.find({ _id: { $in: user.buyList } });
+        res.json({ buyList: buyListItems });
+
+    } catch (error) {
+        console.error("Error fetching buyList:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// Get user's sellList items
+router.get("/:userId/sellList", async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const sellListItems = await Item.find({ _id: { $in: user.sellList } });
+        res.json({ sellList: sellListItems });
+
+    } catch (error) {
+        console.error("Error fetching sellList:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+module.exports = router;
