@@ -4,7 +4,7 @@ const itemSchema = mongoose.Schema({
     name: String,
     description: String,
     price: Number,
-    category: [String], 
+    category: String, 
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },  
     images: [String],  
     createdAt: { type: Date, default: Date.now }, 
@@ -13,7 +13,18 @@ const itemSchema = mongoose.Schema({
         type:String,
         default:"pending"
     },
-    avgScore: Number,
+    average_rating: { 
+        type: Number, 
+        default: 0 
+    },
+    sentiment_score: { 
+        type: Number, 
+        default: 0 
+    },
+    weighted_score: { 
+        type: Number, 
+        default: 0 
+    },
     reviewIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],  
     keyPoints: Object  
 });
