@@ -3,6 +3,7 @@ const router = express.Router();
 const Item = require("../../models/item");
 const User = require("../../models/user");
 const Review = require("../../models/review");
+const Catalog = require("../../models/catalog");
 
 // Create a new item
 router.post("/item", async (req, res) => {
@@ -20,6 +21,21 @@ router.post("/item", async (req, res) => {
         
         const newItem = new Item({ name, description, price, category, userId, images, stock, keyPoints });
         await newItem.save();
+
+        let catalog = await Catalog.findOne();
+        if (!catalog) {
+            catalog = new Catalog({ plantIds: [], seedIds: [], otherAccessories: [] });
+        }
+
+        if (category === "plant") {
+            catalog.plantIds.push(newItem._id);
+        } else if (category === "seed") {
+            catalog.seedIds.push(newItem._id);
+        } else if (category === "otherAccessories") {
+            catalog.otherAccessories.push(newItem._id);
+        }
+        
+        await catalog.save();
         res.status(201).json({ message: "Item created successfully", item: newItem });
     } catch (error) {
         res.status(500).json({ message: "Server Error" });
@@ -58,6 +74,18 @@ router.get("/:id", async (req, res) => {
     }
 });
 
+// API to get item IDs based on search string
+router.get("/searchItems/:query", async (req, res) => {
+    try {
+        const { query } = req.params;
+        const items = await Item.find({ name: { $regex: query, $options: "i" } });
+        res.json(items);
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+
 // Update item
 router.put("/item/:id", async (req, res) => {
     try {
@@ -95,6 +123,79 @@ router.patch("/:id/stock", async (req, res) => {
         res.json(updatedItem);
     } catch (error) {
         res.status(500).json({ message: "Server Error" });
+    }
+});
+
+
+
+// API to get item names based on plantIds
+router.get("/plantNames", async (req, res) => {
+    try {
+        const catalog = await Catalog.findOne();
+        if (!catalog) return res.status(404).json({ message: "Catalog not found" });
+        
+        const items = await Item.find({ _id: { $in: catalog.plantIds } }).select("name");
+        res.json(items.map(item => item.name));
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// API to get item names based on seedIds
+router.get("/seedNames", async (req, res) => {
+    try {
+        const catalog = await Catalog.findOne();
+        if (!catalog) return res.status(404).json({ message: "Catalog not found" });
+        
+        const items = await Item.find({ _id: { $in: catalog.seedIds } }).select("name");
+        res.json(items.map(item => item.name));
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// API to get item names based on otherAccessories
+router.get("/otherAccessoryNames", async (req, res) => {
+    try {
+        const catalog = await Catalog.findOne();
+        if (!catalog) return res.status(404).json({ message: "Catalog not found" });
+        
+        const items = await Item.find({ _id: { $in: catalog.otherAccessories } }).select("name");
+        res.json(items.map(item => item.name));
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+
+
+// Route to delete an item and clean related data
+router.delete('/item/:id', async (req, res) => {
+    try {
+        const item = await Item.findById(req.params.id);
+        if (!item) return res.status(200).json({ message: "Item deleted successfully" });
+
+        // Delete all related reviews
+        await Review.deleteMany({ _id: { $in: item.reviewIds } });
+
+        // Remove item from the corresponding catalog list
+        const updateCatalog = {};
+        if (item.category === "plant") updateCatalog["plantIds"] = item._id;
+        else if (item.category === "seed") updateCatalog["seedIds"] = item._id;
+        else updateCatalog["otherAccessories"] = item._id;
+        
+        await Catalog.updateMany({}, { $pull: updateCatalog });
+
+        // Remove item from all users' wishLists and sellLists
+        await User.updateMany({}, { $pull: { wishList: item._id.toString(), sellList: item._id.toString() } });
+
+        // Finally, delete the item
+        await Item.findByIdAndDelete(req.params.id);
+
+        res.status(200).json({ message: "Item and related data deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting item:", error);
+        res.status(500).json({ message: "Server error", error });
     }
 });
 

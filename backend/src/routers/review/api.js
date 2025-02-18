@@ -4,6 +4,7 @@ const Item = require("../../models/item");
 const Review = require("../../models/review");
 const fetch = require("node-fetch");
 
+
 router.post("/addReview",async (req,res)=>{
     const { itemId, userId, rating, comment } = req.body;
     // console.log("here")
@@ -75,5 +76,17 @@ router.get("/FindReviews/:itemId", async (req, res) => {
       res.status(500).json({ success: false, error: error.message });
     }
   });
+
+
+  // Route to delete a review by ID
+router.delete('/review/:id', async (req, res) => {
+  try {
+      await Review.findByIdAndDelete(req.params.id);
+      res.status(200).json({ message: "Review deleted successfully" });
+  } catch (error) {
+      console.error("Error deleting review:", error);
+      res.status(500).json({ message: "Server error", error });
+  }
+});
   
 module.exports = router;
