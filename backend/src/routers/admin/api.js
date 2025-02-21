@@ -12,6 +12,7 @@ router.post("/test",async (req,res) =>{
     try{
         const temp = await Admin.find();
         const ans = await Admin.find({admin_id:id,admin_password:pass});
+        console.log(temp);
         if(ans.length > 0){
             res.json({correct : true})
         }

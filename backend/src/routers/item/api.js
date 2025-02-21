@@ -6,7 +6,7 @@ const Review = require("../../models/review");
 const Catalog = require("../../models/catalog");
 
 // Create a new item
-router.post("/item", async (req, res) => {
+router.post("/storeItem", async (req, res) => {
     try {
         const { name, description, price, category, userId, images, stock, keyPoints } = req.body;
         
@@ -21,21 +21,7 @@ router.post("/item", async (req, res) => {
         
         const newItem = new Item({ name, description, price, category, userId, images, stock, keyPoints });
         await newItem.save();
-
-        let catalog = await Catalog.findOne();
-        if (!catalog) {
-            catalog = new Catalog({ plantIds: [], seedIds: [], otherAccessories: [] });
-        }
-
-        if (category === "plant") {
-            catalog.plantIds.push(newItem._id);
-        } else if (category === "seed") {
-            catalog.seedIds.push(newItem._id);
-        } else if (category === "otherAccessories") {
-            catalog.otherAccessories.push(newItem._id);
-        }
         
-        await catalog.save();
         res.status(201).json({ message: "Item created successfully", item: newItem });
     } catch (error) {
         res.status(500).json({ message: "Server Error" });

@@ -8,15 +8,15 @@ const Item = require("../../models/item")
 // Register User
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, address, phone } = req.body;
+    const { name, email, password, address, phone , profileImage } = req.body;
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "User already exists" });
     
     const hashedPassword = await bcrypt.hash(password, 10);
     // console.log('here')
-    const newUser = new User({ name, email, password: hashedPassword, address, phone,profileImage:"", wishList: [], buyList: [], sellList: [] });
+    const newUser = new User({ name, email, password: hashedPassword, address, phone,profileImage, wishList: [], buyList: [], sellList: [] });
     await newUser.save();
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "User registered successfully" , userId: newUser._id  });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }
@@ -33,7 +33,7 @@ router.post("/login", async (req, res) => {
     
     const token = jwt.sign({ userId: user._id }, "check", { expiresIn: "1h" });
     // console.log('here')
-    res.json({ token, user });
+    res.json({ token, user , userId: user._id });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }

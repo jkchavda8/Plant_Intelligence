@@ -24,13 +24,8 @@ router.post("/order", async (req, res) => {
         const buyer = await User.findById(userId);
         if (!buyer) return res.status(404).json({ message: "Buyer not found" });
 
-        // Find the seller (Item should have a userId field)
-        const seller = await User.findById(item.userId);
-        if (!seller) return res.status(404).json({ message: "Seller not found" });
-
         // Ensure buyList and sellList exist
         buyer.buyList = buyer.buyList || [];
-        seller.sellList = seller.sellList || [];
 
         // Convert itemId to string safely
         const itemIdStr = String(itemId);
@@ -43,12 +38,6 @@ router.post("/order", async (req, res) => {
         if (!buyer.buyList.includes(itemIdStr)) {
             buyer.buyList.push(itemIdStr);
             await buyer.save();  // ✅ Now this works!
-        }
-
-        // Update seller's sellList
-        if (!seller.sellList.includes(itemIdStr)) {
-            seller.sellList.push(itemIdStr);
-            await seller.save();  // ✅ Now this works!
         }
 
         res.status(201).json({ message: "Order placed successfully", order: newOrder });

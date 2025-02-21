@@ -3,7 +3,7 @@ const router = express.Router();
 const Catalog = require("../../models/catalog");
 
 // API to get all plant items
-router.get("/plantItems", async (req, res) => {
+router.get("/catalog/plantItems", async (req, res) => {
     try {
         const catalog = await Catalog.findOne();
         if (!catalog) {
@@ -17,7 +17,7 @@ router.get("/plantItems", async (req, res) => {
 });
 
 // API to get all seed items
-router.get("/seedItems", async (req, res) => {
+router.get("/catalog/seedItems", async (req, res) => {
     try {
         const catalog = await Catalog.findOne();
         if (!catalog) {
@@ -31,7 +31,7 @@ router.get("/seedItems", async (req, res) => {
 });
 
 // API to get all other accessories items
-router.get("/otherAccessoriesItems", async (req, res) => {
+router.get("/catalog/otherAccessoriesItems", async (req, res) => {
     try {
         const catalog = await Catalog.findOne();
         if (!catalog) {
@@ -44,7 +44,7 @@ router.get("/otherAccessoriesItems", async (req, res) => {
     }
 });
 
-router.delete("/plantIds/:id", async (req, res) => {
+router.delete("/catalog/plantIds/:id", async (req, res) => {
     try {
         const { id } = req.params;
         await Catalog.findOneAndUpdate({}, { $pull: { plantIds: id } });
@@ -54,7 +54,7 @@ router.delete("/plantIds/:id", async (req, res) => {
     }
 });
 
-router.delete("/seedIds/:id", async (req, res) => {
+router.delete("/catalog/seedIds/:id", async (req, res) => {
     try {
         const { id } = req.params;
         await Catalog.findOneAndUpdate({}, { $pull: { seedIds: id } });
@@ -64,7 +64,7 @@ router.delete("/seedIds/:id", async (req, res) => {
     }
 });
 
-router.delete("/otherAccessories/:id", async (req, res) => {
+router.delete("/catalog/otherAccessories/:id", async (req, res) => {
     try {
         const { id } = req.params;
         await Catalog.findOneAndUpdate({}, { $pull: { otherAccessories: id } });
