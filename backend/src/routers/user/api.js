@@ -50,6 +50,7 @@ router.get("/profile/:id", async (req, res) => {
   }
 });
 
+// Update User
 router.put("/profile/:id", async (req, res) => {
     try {
       const { name, address, phone, profileImage } = req.body;

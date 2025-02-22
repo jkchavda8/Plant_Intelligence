@@ -48,17 +48,21 @@ router.post("/order", async (req, res) => {
 });
 
 
-// Get all orders
-router.get("/orders", async (req, res) => {
+// Get order by ID
+router.get("/order/all", async (req, res) => {
     try {
-        const orders = await Order.find().populate("userId", "name email").populate("itemId");
-        res.json(orders);
+        const order = await Order.find()
+            .populate("userId", "name email")
+            .populate("itemId");
+
+        if (!order) return res.status(404).json({ message: "Order not found" });
+
+        res.json(order);
     } catch (error) {
         res.status(500).json({ message: "Server Error" });
     }
 });
 
-// Get order by ID
 router.get("/order/:id", async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
@@ -72,6 +76,26 @@ router.get("/order/:id", async (req, res) => {
         res.status(500).json({ message: "Server Error" });
     }
 });
+
+// Delete an order by ID
+router.delete("/order/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find and delete the order
+        const deletedOrder = await Order.findByIdAndDelete(id);
+
+        if (!deletedOrder) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        res.status(200).json({ message: "Order deleted successfully", order: deletedOrder });
+    } catch (error) {
+        console.error("Error deleting order:", error);
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+});
+
 
 router.patch("/order/report/:orderId", async (req, res) => {
     try {
