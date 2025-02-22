@@ -32,7 +32,7 @@ export default function AdminItemPopup({ itemId, onClose, onItemUpdated }) {
 
     const handleStatusChange = async () => {
         const adminId = localStorage.getItem("adminId");
-
+        console.log(adminId);
         if (!adminId) {
             alert("Admin authentication required!");
             return;
