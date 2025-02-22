@@ -151,9 +151,14 @@ export default function PlantSystemHomepage() {
   };
 
   const handleLogout = () => {
+    setIsNavigating(true); 
     localStorage.removeItem("userId");
     localStorage.removeItem("email");
-    Router.push("/authentication/user"); // Redirect to login page
+    Router.push("/authentication/user").then(() => {
+      setIsNavigating(false); // Hide loader after navigation
+    });; // Redirect to login page
+
+    setTimeout(() => setIsNavigating(false), 5000);
   };
 
   return (

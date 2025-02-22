@@ -2,6 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { FaSpinner } from "react-icons/fa";
 
 export default function UserAuth() {
   const [userId, setUserId] = useState("");
@@ -30,6 +31,7 @@ export default function UserAuth() {
       alert("Please enter your password");
       return;
     }
+    setLoading(true);
     try {
       const response = await axios.post("http://localhost:8000/login", {
         email: userId,
@@ -46,6 +48,7 @@ export default function UserAuth() {
       console.error("Error:", error);
       alert(error);
     }
+    setLoading(false);
   };
 
   const handleChange = (e) => {
@@ -105,6 +108,13 @@ export default function UserAuth() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-blue-100 bg-[url('/background.jpg')] bg-cover bg-center">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 flex flex-col justify-center items-center bg-white bg-opacity-75 z-50">
+          <FaSpinner className="animate-spin text-blue-600 text-4xl mb-3" />
+          <p className="text-lg text-gray-700 font-medium">Processing...</p>
+        </div>
+      )}
       <div className="bg-white bg-opacity-90 shadow-xl rounded-2xl p-8 w-full max-w-md transform transition duration-500 hover:scale-105 animate-fade-in">
         {isRegister ? (
           <>
