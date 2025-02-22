@@ -3,7 +3,9 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken")
 const User = require("../../models/user");
-const Item = require("../../models/item")
+const Item = require("../../models/item");
+const authentication=require("../authentication/authentication");
+const { app } = require('firebase-admin');
 
 // Register User
 router.post("/register", async (req, res) => {
@@ -31,7 +33,7 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
     
-    const token = jwt.sign({ userId: user._id }, "check", { expiresIn: "1h" });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: "1h" });
     // console.log('here')
     res.json({ token, user , userId: user._id });
   } catch (error) {
@@ -39,8 +41,9 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.use("/",authentication);
 // Get User Profile
-router.get("/profile/:id", async (req, res) => {
+router.get("/profile/:id",async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });

@@ -16,8 +16,8 @@ app.use(cors());
 app.get("/loading",async(req,res)=>{
     res.send("server is running")
  })
+ app.use(userApi);
 app.use(authentication,adminApi);
-app.use(userApi);
 app.use(authentication,itemApi);
 app.use(authentication,orderApi);
 app.use(authentication,reviewApi);
