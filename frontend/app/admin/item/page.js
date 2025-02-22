@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useRouter } from 'next/navigation';
 import { FaTimes, FaChevronRight, FaChevronDown } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { Carousel } from "react-responsive-carousel";
@@ -12,6 +13,8 @@ export default function AdminItemPopup({ itemId, onClose, onItemUpdated }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [expandedKey, setExpandedKey] = useState(null);
+
+    const router = useRouter();
 
     useEffect(() => {
         if (itemId) {
@@ -35,6 +38,7 @@ export default function AdminItemPopup({ itemId, onClose, onItemUpdated }) {
         console.log(adminId);
         if (!adminId) {
             alert("Admin authentication required!");
+            router.push("/authentication/admin");
             return;
         }
         try {

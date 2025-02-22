@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import axios from "axios";
 import Link from "next/link";
 import AdminItemPopup from "./item/page"; 
@@ -14,11 +15,14 @@ export default function AdminItemsPage() {
   const [selectedCategory, setSelectedCategory] = useState("plants"); 
   const [selectedStatus, setSelectedStatus] = useState("pending");
 
+  const router = useRouter();
+
   useEffect(() => {
     const adminId = localStorage.getItem("adminId");
 
     if (!adminId) {
       alert("Admin authentication required!");
+      router.push("/authentication/admin");
       return;
     }
 
@@ -36,6 +40,12 @@ export default function AdminItemsPage() {
     fetchItems();
   }, []);
 
+  // Logout Function
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/authentication/admin");
+  };
+
   // Filter items based on category, status, and search term
   const filteredItems = items.filter(
     (item) =>
@@ -48,13 +58,24 @@ export default function AdminItemsPage() {
     <div className="p-6 bg-red-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-red-700">Admin Of Plant AI</h1>
-        <Link
-          href="/admin/reportOrder"
-          className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
-        >
-          View Reported Orders
-        </Link>
+        
+        {/* Wrapper for buttons with reduced gap */}
+        <div className="flex gap-2">
+          <Link
+            href="/admin/reportOrder"
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+          >
+            View Reported Orders
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-800 transition"
+          >
+            Logout
+          </button>
+        </div>
       </div>
+
 
       <div className="flex gap-4 mb-6">
         <input
