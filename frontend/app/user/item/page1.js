@@ -105,31 +105,32 @@ export default function ItemPopup({ itemId, onClose }) {
             <div className="bg-white shadow-md rounded-2xl p-4 mt-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-2">Key Points</h3>
               <div className="divide-y divide-gray-300">
-                {Object.entries(item.keyPoints || {}).map(([key, value]) => (
-                  <div key={key} className="py-3">
-                    <button
-                      className="flex justify-between items-center w-full text-left text-gray-700 font-medium py-2 px-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-300"
-                      onClick={() => setExpandedKey(expandedKey === key ? null : key)}
-                    >
-                      <span className="text-gray-900">{key}</span>
-                      {expandedKey === key ? (
-                        <FaChevronDown className="text-gray-500 transition-transform transform rotate-180" />
-                      ) : (
-                        <FaChevronRight className="text-gray-500 transition-transform" />
-                      )}
-                    </button>
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={expandedKey === key ? { opacity: 1, height: "auto" } : { opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="overflow-hidden mt-2 px-3"
-                    >
-                      <p className="text-gray-600 text-sm bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm">
-                        {value}
-                      </p>
-                    </motion.div>
-                  </div>
-                ))}
+              {(item.keyPoints || []).map((point, index) => (
+                <div key={index} className="py-3">
+                  <button
+                    className="flex justify-between items-center w-full text-left text-gray-700 font-medium py-2 px-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-300"
+                    onClick={() => setExpandedKey(expandedKey === index ? null : index)}
+                  >
+                    <span className="text-gray-900">{point.key}</span>
+                    {expandedKey === index ? (
+                      <FaChevronDown className="text-gray-500 transition-transform transform rotate-180" />
+                    ) : (
+                      <FaChevronRight className="text-gray-500 transition-transform" />
+                    )}
+                  </button>
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={expandedKey === index ? { opacity: 1, height: "auto" } : { opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden mt-2 px-3"
+                  >
+                    <p className="text-gray-600 text-sm bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm">
+                      {point.description}
+                    </p>
+                  </motion.div>
+                </div>
+              ))}
+
               </div>
             </div>
 
@@ -148,7 +149,7 @@ export default function ItemPopup({ itemId, onClose }) {
               )}
             </div>
 
-            {item.stock > 0 && (
+            {item.stock > 0 && userId != String(item.userId._id) && (
               <div className="mt-6 p-4 bg-gray-100 rounded-lg">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Buy Now</h3>
                 <div className="flex items-center justify-between">

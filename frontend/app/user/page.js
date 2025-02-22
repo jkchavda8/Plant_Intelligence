@@ -1,9 +1,11 @@
 'use client';
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaSearch, FaHeart, FaShoppingCart, FaUser, FaTag } from "react-icons/fa";
+import { FaSearch, FaHeart, FaShoppingCart, FaUser, FaTag , FaSpinner } from "react-icons/fa";
 import ItemPopup from "./item/page1";
-
+import ProfilePopup from "./profile/page1";
+import NoItem from "./noItem/page1";
+import { motion } from "framer-motion";
 
 export default function PlantSystemHomepage() {
   const [items, setItems] = useState([]);
@@ -12,13 +14,17 @@ export default function PlantSystemHomepage() {
   const [sortOption, setSortOption] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItemId, setSelectedItemId] = useState(null);
+  const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   let email = localStorage.getItem("email");
+  let userId = localStorage.getItem("userId");
 
   useEffect(() => {
     fetchItems();
   }, []);
 
   const fetchItems = async () => {
+    setLoading(true);
     try {
       const response = await axios.get("http://localhost:8000/");
       const allItems = response.data;
@@ -26,6 +32,8 @@ export default function PlantSystemHomepage() {
       setFilteredItems(allItems.filter(item => item.category === "plants"));
     } catch (error) {
       console.error("Error fetching items", error);
+    } finally {
+      setLoading(false); 
     }
   };
 
@@ -80,8 +88,12 @@ export default function PlantSystemHomepage() {
           />
         </div>
         <nav className="flex space-x-6">
-          {["Wishlist",  "Selllist", "Orders", "MyProfile"].map(option => (
-            <button key={option} className="text-gray-700 hover:text-blue-600 font-semibold flex items-center space-x-2 relative">
+          {["Wishlist", "Buylist" , "Selllist", "Orders", "MyProfile"].map(option => (
+            <button key={option} className="text-gray-700 hover:text-blue-600 font-semibold flex items-center space-x-2 relative" onClick={() => {
+                if (option === "MyProfile") {
+                  setIsProfilePopupOpen(true);
+                }
+              }}>
               {option === "Wishlist" && <FaHeart className="text-red-500" />}
               {option === "Orders" && <FaShoppingCart className="text-yellow-500" />}
               {option === "MyProfile" && <FaUser className="text-purple-500" />}
@@ -120,39 +132,50 @@ export default function PlantSystemHomepage() {
 
       <div className="flex justify-center">
       <div className="grid grid-cols-3 gap-20 mt-6 px-4">
-        {filteredItems.map((item) => (
-          <div
-            key={item._id}
-            className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 p-6 w-96 h-auto relative overflow-hidden"
-            onClick={() => setSelectedItemId(item._id)}
-          >
-            <div className="relative w-full h-56 rounded-2xl overflow-hidden">
-              <img
-                src={item.images[0]}
-                alt={item.name}
-                className="w-full h-full object-cover"
-              />
-              <button className="absolute top-3 right-3 bg-white p-3 rounded-full shadow-md border-2 border-white hover:bg-red-500 hover:text-white transition duration-300">
-                ❤
-              </button>
-            </div>
-            <h3 className="text-xl font-bold mt-4 text-gray-900 truncate">{item.name}</h3>
-            <p className="text-gray-600 mt-2 text-sm line-clamp-2">{item.description}</p>
-            <div className="flex justify-between items-center mt-4">
-              <p className="text-blue-600 font-bold text-xl">${item.price}</p>
-              <p className="text-yellow-500 font-semibold flex items-center">
-                ⭐ {item.average_rating}
-              </p>
-            </div>
+        {loading ? (
+          <div className="flex justify-center items-center mt-10">
+            <FaSpinner className="animate-spin text-blue-500 text-4xl" />
+            <p className="ml-2 text-blue-500">Loading items...</p>
           </div>
-        ))}
+        ) : filteredItems.length > 0 ? (
+          filteredItems.map((item) => (
+            <div
+              key={item._id}
+              className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 p-6 w-96 h-auto relative overflow-hidden"
+              onClick={() => setSelectedItemId(item._id)}
+            >
+              <div className="relative w-full h-56 rounded-2xl overflow-hidden">
+                <img
+                  src={item.images[0]}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+                <button className="absolute top-3 right-3 bg-white p-3 rounded-full shadow-md border-2 border-white hover:bg-red-500 hover:text-white transition duration-300">
+                  ❤
+                </button>
+              </div>
+              <h3 className="text-xl font-bold mt-4 text-gray-900 truncate">{item.name}</h3>
+              <p className="text-gray-600 mt-2 text-sm line-clamp-2">{item.description}</p>
+              <div className="flex justify-between items-center mt-4">
+                <p className="text-blue-600 font-bold text-xl">${item.price}</p>
+                <p className="text-yellow-500 font-semibold flex items-center">
+                  ⭐ {item.average_rating}
+                </p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <NoItem />
+        )}
       </div>
+
 
       {selectedItemId && <ItemPopup itemId={selectedItemId} onClose={() => setSelectedItemId(null)} />}
     </div>
 
 
 
+    {isProfilePopupOpen && <ProfilePopup userId={userId} onClose={() => setIsProfilePopupOpen(false)} />}
     </div>
   );
 }
