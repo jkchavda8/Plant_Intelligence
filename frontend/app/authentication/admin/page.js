@@ -16,6 +16,7 @@ export default function AdminAuth() {
         admin_id: adminId,
         admin_password: password,
       });
+      localStorage.setItem("adminId",adminId);
       console.log("Response:", response.data);
     } catch (error) {
       console.error("Error:", error);

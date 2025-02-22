@@ -45,9 +45,11 @@ router.get("/reported-orders", async (req, res) => {
             return {
                 orderId: order._id,
                 problem: order.problem,
+                quantity:order.quantity,
+                totalAmount:order.totalAmount,
                 item: item ? { name: item.name, price: item.price, description: item.description } : null,
-                buyer: buyer ? { name: buyer.name, email: buyer.email } : null,
-                seller: seller ? { name: seller.name, email: seller.email } : null
+                buyer: buyer ? { name: buyer.name, email: buyer.email , phone:buyer.phone, address:buyer.address} : null,
+                seller: seller ? { name: seller.name, email: seller.email, phone:seller.phone, address:seller.address } : null
             };
         }));
 
