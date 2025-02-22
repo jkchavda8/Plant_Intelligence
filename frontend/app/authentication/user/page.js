@@ -1,11 +1,13 @@
 'use client';
 import { useState } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function UserAuth() {
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [isRegister, setIsRegister] = useState(false);
+  const Router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -27,7 +29,7 @@ export default function UserAuth() {
       });
       localStorage.setItem("email",userId);
       localStorage.setItem("userId",response.data.userId);
-      alert(response.data.userId);
+      Router.push("/user");
     } catch (error) {
       console.error("Error:", error);
     }
@@ -76,6 +78,7 @@ export default function UserAuth() {
       alert(response.data.message);
       localStorage.setItem("email",formData["email"]);
       localStorage.setItem("userId",response.data.userId);
+      Router.push("/user");
     } catch (error) {
       console.error("Registration failed", error);
       alert("Registration failed");

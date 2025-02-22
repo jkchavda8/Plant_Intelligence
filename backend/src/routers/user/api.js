@@ -17,8 +17,11 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     // console.log('here')
     const newUser = new User({ name, email, password: hashedPassword, address, phone,profileImage, wishList: [], buyList: [], sellList: [] });
+    console.log(newUser._id);
     await newUser.save();
-    res.status(201).json({ message: "User registered successfully" , userId: newUser._id  });
+
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET_KEY, { expiresIn: "1h" });
+    res.status(201).json({ message: "User registered successfully" , userId: newUser._id , token });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }
@@ -138,7 +141,7 @@ router.get("/:userId/wishlist/ids", async (req, res) => {
 
 
 // Get user's wishlist with actual item details
-router.get("/:userId/wishlist", async (req, res) => {
+router.get("/:userId/wishList", async (req, res) => {
     try {
         const { userId } = req.params;
 
