@@ -22,16 +22,29 @@ export default function UserAuth() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if(!userId){
+      alert("Please enter your email address");
+      return;
+    }
+    if(!password){
+      alert("Please enter your password");
+      return;
+    }
     try {
       const response = await axios.post("http://localhost:8000/login", {
         email: userId,
         password: password,
       });
+      if(response.data.message){
+        alert(response.data.message);
+        return ; 
+      }
       localStorage.setItem("email",userId);
       localStorage.setItem("userId",response.data.userId);
       Router.push("/user");
     } catch (error) {
       console.error("Error:", error);
+      alert(error);
     }
   };
 
@@ -75,7 +88,11 @@ export default function UserAuth() {
         ...formData,
         profileImage: imageUrl,
       });
-      alert(response.data.message);
+      if(response.data.message){
+        alert(response.data.message);
+        return ; 
+      }
+      alert("User registered successfully");
       localStorage.setItem("email",formData["email"]);
       localStorage.setItem("userId",response.data.userId);
       Router.push("/user");
