@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Modal, Input, Card, Skeleton, message } from "antd";
+import { useRouter } from "next/navigation";
 
 const OrderPage = () => {
     const [orders, setOrders] = useState([]);
@@ -9,10 +10,14 @@ const OrderPage = () => {
     const [reportModal, setReportModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [reportText, setReportText] = useState("");
+    const Router = useRouter();
 
     const userId = localStorage.getItem("userId");
 
     useEffect(() => {
+        if (!userId) {
+            Router.push("/authentication/user");
+          }
         const fetchOrders = async () => {
             try {
                 const response = await axios.get("http://localhost:8000/order/all");

@@ -4,6 +4,7 @@ import axios from "axios";
 import { FaSearch, FaTag, FaEdit , FaPlus , FaTimes , FaSpinner } from "react-icons/fa";
 import ItemPopup from "../item/page1";
 import NoItem from "../noItem/page1";
+import { useRouter } from "next/navigation";
 
 export default function PlantSystemHomepage() {
   const [items, setItems] = useState([]);
@@ -26,9 +27,13 @@ export default function PlantSystemHomepage() {
     keyPoints: [{ key: "", description: "" }],
   });
   const [imageFiles, setImageFiles] = useState([]);
+  const Router = useRouter();
   let userId = localStorage.getItem("userId");
 
   useEffect(() => {
+    if (!userId) {
+      Router.push("/authentication/user");
+    }
     fetchItems();
   }, []);
 

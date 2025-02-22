@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 export default function PlantSystemHomepage() {
+  const [isNavigating, setIsNavigating] = useState(false); 
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("plants");
@@ -21,10 +22,12 @@ export default function PlantSystemHomepage() {
   const [wishlist, setWishlist] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const Router = useRouter();
-  let email = localStorage.getItem("email");
   let userId = localStorage.getItem("userId");
 
   useEffect(() => {
+    if (!userId) {
+      Router.push("/authentication/user");
+    }
     fetchItems();
     fetchWishlist();
   }, []);
@@ -33,7 +36,7 @@ export default function PlantSystemHomepage() {
     setLoading(true);
     try {
       const response = await axios.get("http://localhost:8000/");
-      const allItems = response.data;
+      const allItems = response.data.filter(item => item.status == "approve");
       setItems(allItems);
       setFilteredItems(allItems.filter(item => item.category === "plants"));
     } catch (error) {
@@ -90,6 +93,17 @@ export default function PlantSystemHomepage() {
     applyFilters(selectedCategory, sortOption, query);
   };
 
+  const handleNavigation = (path) => {
+    setIsNavigating(true); // Show loading indicator
+
+    Router.push(path).then(() => {
+      setIsNavigating(false); // Hide loader after navigation
+    });
+
+    // Optional: Set a timeout in case navigation takes longer
+    setTimeout(() => setIsNavigating(false), 5000);
+  };
+
   // whishlist handeling code
 
   const toggleWishlist = async (itemId) => {
@@ -143,7 +157,14 @@ export default function PlantSystemHomepage() {
   };
 
   return (
-    <div className="p-6 bg-blue-50 min-h-screen">
+    <div className="p-6 bg-blue-50 min-h-screen relative">
+      {/* Loading Overlay */}
+      {isNavigating && (
+        <div className="fixed inset-0 flex flex-col justify-center items-center bg-white bg-opacity-75 z-50">
+          <FaSpinner className="animate-spin text-blue-600 text-4xl mb-3" />
+          <p className="text-lg text-gray-700 font-medium">Loading...</p>
+        </div>
+      )}
       <header className="flex justify-between items-center bg-white shadow-lg p-4 rounded-lg">
         <div className="flex items-center space-x-2 border p-2 rounded-md bg-gray-100 w-1/3">
           <FaSearch className="text-gray-500" />
@@ -161,24 +182,12 @@ export default function PlantSystemHomepage() {
               key={option}
               className="text-gray-700 hover:text-blue-600 font-semibold flex items-center space-x-2 relative"
               onClick={() => {
-                if (option === "ChatBot") {
-                  setIsChatOpen(true); // Open chatbot popup
-                }
-                if (option === "MyProfile") {
-                  setIsProfilePopupOpen(true);
-                }
-                if (option === "Wishlist") {
-                  Router.push("user/wishList");
-                }
-                if (option === "Buylist") {
-                  Router.push("user/buyList");
-                }
-                if (option === "Selllist") {
-                  Router.push("user/sellList");
-                }
-                if (option === "Orders") {
-                  Router.push("user/orders");
-                }
+                if (option === "ChatBot") setIsChatOpen(true);
+                if (option === "MyProfile") setIsProfilePopupOpen(true);
+                if (option === "Wishlist") handleNavigation("/user/wishList");
+                if (option === "Buylist") handleNavigation("/user/buyList");
+                if (option === "Selllist") handleNavigation("/user/sellList");
+                if (option === "Orders") handleNavigation("/user/orders");
               }}
             >
               {option === "ChatBot" && <FaCommentDots className="text-green-500" />}

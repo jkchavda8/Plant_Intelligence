@@ -4,6 +4,7 @@ import axios from "axios";
 import { FaSearch, FaTag, FaEdit, FaPlus, FaTimes, FaSpinner, FaStar } from "react-icons/fa";
 import ItemPopup from "../item/page1";
 import NoItem from "../noItem/page1";
+import { useRouter } from "next/navigation";
 
 export default function PlantSystemHomepage() {
   const [items, setItems] = useState([]);
@@ -11,9 +12,13 @@ export default function PlantSystemHomepage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const Router = useRouter();
   let userId = localStorage.getItem("userId");
 
   useEffect(() => {
+    if (!userId) {
+      Router.push("/authentication/user");
+    }
     fetchItems();
   }, []);
 
@@ -21,7 +26,7 @@ export default function PlantSystemHomepage() {
     setLoading(true);
     try {
       const response = await axios.get(`http://localhost:8000/${userId}/wishList`);
-      const allItems = response.data.wishList;
+      const allItems = response.data.wishList.filter(item => item.status == "approve");
       setItems(allItems);
       setFilteredItems(allItems);
     } catch (error) {

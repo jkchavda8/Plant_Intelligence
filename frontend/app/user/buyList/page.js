@@ -4,6 +4,7 @@ import axios from "axios";
 import { FaSearch, FaTag, FaEdit, FaPlus, FaTimes, FaSpinner, FaStar } from "react-icons/fa";
 import ItemPopup from "../item/page1";
 import NoItem from "../noItem/page1";
+import { useRouter } from "next/navigation";
 
 export default function PlantSystemHomepage() {
   const [items, setItems] = useState([]);
@@ -15,9 +16,13 @@ export default function PlantSystemHomepage() {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(0);
   const [reviewItemId, setReviewItemId] = useState(null);
+  const Router = useRouter();
   let userId = localStorage.getItem("userId");
 
   useEffect(() => {
+    if (!userId) {
+      Router.push("/authentication/user");
+    }
     fetchItems();
   }, []);
 
