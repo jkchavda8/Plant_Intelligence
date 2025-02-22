@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaSearch, FaHeart, FaShoppingCart, FaUser, FaTag , FaSpinner } from "react-icons/fa";
+import { FaSearch, FaHeart, FaShoppingCart, FaUser, FaTag , FaSpinner, FaCommentDots, FaSignOutAlt } from "react-icons/fa";
 import ItemPopup from "./item/page1";
 import ProfilePopup from "./profile/page1";
+import ChatBotPopup from "./chatBot/page1";
 import NoItem from "./noItem/page1";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 export default function PlantSystemHomepage() {
@@ -17,6 +19,8 @@ export default function PlantSystemHomepage() {
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [wishlist, setWishlist] = useState([]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const Router = useRouter();
   let email = localStorage.getItem("email");
   let userId = localStorage.getItem("userId");
 
@@ -132,8 +136,11 @@ export default function PlantSystemHomepage() {
     
   };
 
-
-
+  const handleLogout = () => {
+    localStorage.removeItem("userId");
+    localStorage.removeItem("email");
+    Router.push("/authentication/user"); // Redirect to login page
+  };
 
   return (
     <div className="p-6 bg-blue-50 min-h-screen">
@@ -149,12 +156,32 @@ export default function PlantSystemHomepage() {
           />
         </div>
         <nav className="flex space-x-6">
-          {["Wishlist", "Buylist" , "Selllist", "Orders", "MyProfile"].map(option => (
-            <button key={option} className="text-gray-700 hover:text-blue-600 font-semibold flex items-center space-x-2 relative" onClick={() => {
+          {["ChatBot", "Wishlist", "Buylist", "Selllist", "Orders", "MyProfile"].map((option) => (
+            <button
+              key={option}
+              className="text-gray-700 hover:text-blue-600 font-semibold flex items-center space-x-2 relative"
+              onClick={() => {
+                if (option === "ChatBot") {
+                  setIsChatOpen(true); // Open chatbot popup
+                }
                 if (option === "MyProfile") {
                   setIsProfilePopupOpen(true);
                 }
-              }}>
+                if (option === "Wishlist") {
+                  Router.push("user/wishList");
+                }
+                if (option === "Buylist") {
+                  Router.push("user/buyList");
+                }
+                if (option === "Selllist") {
+                  Router.push("user/sellList");
+                }
+                if (option === "Orders") {
+                  Router.push("user/orders");
+                }
+              }}
+            >
+              {option === "ChatBot" && <FaCommentDots className="text-green-500" />}
               {option === "Wishlist" && <FaHeart className="text-red-500" />}
               {option === "Orders" && <FaShoppingCart className="text-yellow-500" />}
               {option === "MyProfile" && <FaUser className="text-purple-500" />}
@@ -162,7 +189,15 @@ export default function PlantSystemHomepage() {
               <span>{option}</span>
             </button>
           ))}
+          <button
+            className="text-red-600 hover:text-red-800 font-semibold flex items-center space-x-2"
+            onClick={handleLogout}
+          >
+            <FaSignOutAlt />
+            <span>Logout</span>
+          </button>
         </nav>
+
       </header>
       
       <div className="flex justify-center space-x-6 mt-6">
@@ -236,6 +271,8 @@ export default function PlantSystemHomepage() {
           <NoItem />
         )}
       </div>
+
+      {isChatOpen && <ChatBotPopup onClose = {() => setIsChatOpen(false)}/>}
 
 
       {selectedItemId && <ItemPopup itemId={selectedItemId} onClose={() => setSelectedItemId(null)} />}
