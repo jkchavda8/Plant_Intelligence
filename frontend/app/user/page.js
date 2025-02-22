@@ -16,11 +16,13 @@ export default function PlantSystemHomepage() {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [wishlist, setWishlist] = useState([]);
   let email = localStorage.getItem("email");
   let userId = localStorage.getItem("userId");
 
   useEffect(() => {
     fetchItems();
+    fetchWishlist();
   }, []);
 
   const fetchItems = async () => {
@@ -34,6 +36,16 @@ export default function PlantSystemHomepage() {
       console.error("Error fetching items", error);
     } finally {
       setLoading(false); 
+    }
+  };
+
+  const fetchWishlist = async () => {
+    if (!userId) return;
+    try {
+      const response = await axios.get(`http://localhost:8000/${userId}/wishlist/ids`);
+      setWishlist(response.data.wishListIds); 
+    } catch (error) {
+      console.error("Error fetching wishlist", error);
     }
   };
 
@@ -73,6 +85,55 @@ export default function PlantSystemHomepage() {
     setSearchQuery(query);
     applyFilters(selectedCategory, sortOption, query);
   };
+
+  // whishlist handeling code
+
+  const toggleWishlist = async (itemId) => {
+    if (!userId) return alert("Please log in first!");
+
+    //check if wishlist contains items in user list of wishlist
+    if(wishlist.includes(itemId)){
+      //if it contains then remove it from user list of wishlist
+
+      try{
+        //update wishlist in database
+        await axios.delete(`http://localhost:8000/${userId}/wishlist/${itemId}`);
+        
+       //update localy
+       let updatedWishlist=wishlist.filter(id => id !== itemId) // Remove item
+       setWishlist(updatedWishlist);
+      }
+      catch(err){
+        console.log( "api contains error like:-"+err);
+      }
+      
+      
+    }
+    else{
+
+      //if it not contains then add it into user list of wishlist
+      try{ 
+      //update wishlist in database
+      await axios.post(`http://localhost:8000/${userId}/wishlist/${itemId}`);
+
+       //update localy
+      let updatedWishlist=[...wishlist, itemId] // Remove item
+       setWishlist(updatedWishlist);
+      }
+      catch(err){
+        console.log( "api contains error like:-"+err);
+      }
+      
+    }
+
+
+    
+
+    
+  };
+
+
+
 
   return (
     <div className="p-6 bg-blue-50 min-h-screen">
@@ -150,7 +211,14 @@ export default function PlantSystemHomepage() {
                   alt={item.name}
                   className="w-full h-full object-cover"
                 />
-                <button className="absolute top-3 right-3 bg-white p-3 rounded-full shadow-md border-2 border-white hover:bg-red-500 hover:text-white transition duration-300">
+                <button
+                  className={`absolute top-3 right-3 p-3 rounded-full shadow-md border-2 transition duration-300
+                  ${wishlist.includes(item._id) ? "bg-red-500 text-white border-red-500 hover:bg-white hover:text-black transition duration-300 " : "bg-white text-black border-white hover:bg-red-500 hover:text-white transition duration-300"}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleWishlist(item._id);
+                  }}
+                >
                   ❤
                 </button>
               </div>
